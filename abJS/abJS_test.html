@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>abJS test</title>
+    <style>
+        .funny {
+            font-family: Comic Sans, Comic Sans MS, cursive;
+        }
+    </style>
+</head>
+<body>
+    <h4><span class="funny">The party is in the <i>console</i>...</span></h4>
+
+    <script type="text/javascript" src="./ab.js"></script>
+    <script type="text/javascript">
+        // Embedded javascript in page! Outrageous!
+
+        function Person() {
+            return {
+                name: "Tom",
+                surname: "Dev",
+                fullName: function () {
+                    return this.name + " " + this.surname;
+                },
+                greet: function () {
+                    console.log("hi! I'm " + this.fullName());
+                }
+            };
+        }
+
+        var tom = new Person();
+        tom.greet();
+
+    </script>
+</body>
+</html>
