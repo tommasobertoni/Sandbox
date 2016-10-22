@@ -11,25 +11,72 @@
 <body>
     <h4><span class="funny">The party is in the <i>console</i>...</span></h4>
 
+    <script type="text/javascript" src="./jquery.js"></script>
+    <script type="text/javascript" src="./q.js"></script>
     <script type="text/javascript" src="./ab.js"></script>
     <script type="text/javascript">
         // Embedded javascript in page! Outrageous!
 
+        function checkResultPromiseState(result) {
+            if (result) {
+                console.log("is result a promise? " + result.isPromise());
+            }
+        }
+
         function Person() {
-            return {
-                name: "Tom",
-                surname: "Dev",
-                fullName: function () {
-                    return this.name + " " + this.surname;
-                },
-                greet: function () {
-                    console.log("hi! I'm " + this.fullName());
-                }
+            var person = this;
+            person.name = "Tom";
+            person.surname = "Dev";
+            person.fullName = function () {
+                return person.name + " " + person.surname;
             };
+            person.greet = function () {
+                console.log("hi! I'm " + person.fullName());
+            };
+            return person;
         }
 
         var tom = new Person();
+
+        // Test promises
+        var result = tom.fullName();
+        checkResultPromiseState(result);
+        result = result.asPromise();
+        checkResultPromiseState(result);
+
+        // Test alter behaviours
+        console.log("[method invocation (greet)]");
         tom.greet();
+
+        console.log("[adding behaviour]");
+        var printHeader = function () {
+            console.log("----------------");
+        };
+        tom.addBefore("greet", printHeader);
+
+        console.log("[method invocation (greet)]");
+        result = tom.greet();
+
+        result.then(function () {
+            console.log("[adding delay]");
+            tom.addBefore("greet", function () {
+                var async = Q.defer();
+                setTimeout(function () {
+                    console.log("timeout completed");
+                    async.resolve();
+                }, 2000);
+                return async.promise;
+            });
+
+            console.log("[method invocation (greet)]");
+            return tom.greet();
+        }).then(function () {
+            tom.removeBefore("greet", printHeader);
+
+            console.log("[removing behaviour]");
+            console.log("[method invocation (greet)]");
+            return tom.greet();
+        });
 
     </script>
 </body>
