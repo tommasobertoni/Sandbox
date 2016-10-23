@@ -1,4 +1,7 @@
 #Ignore dependencies
 
+bootstrap.css
+node_modules
 q.js
 jquery.js
+bootstrap.js

@@ -93,9 +93,13 @@ function InvocationListeners() {
     return instance;
 }
 
-function findTargetFunc(target, targetFuncName) {
+function isjQuery(target) {
     // If jQuery is set and it's the target
-    if (!!window.jQuery && target instanceof jQuery) {
+    return !!window.jQuery && target === jQuery;
+}
+
+function findTargetFunc(target, targetFuncName) {
+    if (isjQuery(target) && target.fn !== undefined) {
         return target.fn[targetFuncName];
     } else {
         return target[targetFuncName];
@@ -104,10 +108,18 @@ function findTargetFunc(target, targetFuncName) {
 
 function setNewTargetFunc(target, targetFuncName, targetFunc) {
 
-	var newTargetFunc = function () {
+    var newTargetFunc = function () {
 
+        var actualTarget = target;
+        if (isjQuery(target)) {
+            var elem = this[0]; // Gets the current element
+            if (elem)
+                actualTarget = elem;
+        }
+
+	    var args = arguments;
 	    var precedingFuncs = target.abMap.behaviours[targetFuncName].preceding;
-	    if (precedingFuncs) {
+	    if (precedingFuncs && precedingFuncs.length > 0) {
 
 	        var result;
 	        var async = Q.defer();
@@ -116,66 +128,73 @@ function setNewTargetFunc(target, targetFuncName, targetFunc) {
 	        precedingFuncs.forEach(function (func) { promises.push(Q(func())); });
 
 	        Q.allSettled(promises).then(function () {
-	            result = Q(targetFunc(arguments));
-	            return result;
+	            result = targetFunc.apply($(actualTarget), args);
+	            return Q(result);
 	        }).then(function () {
 	            async.resolve(result);
 	        });
 
 	        return async.promise;
 	    } else {
-	        return targetFunc();
+	        return asPromise(targetFunc.apply($(actualTarget), args));
 	    }
 	};
 
-    // If jQuery is set and it's the target
-	if (!!window.jQuery && target instanceof jQuery) {
+	if (isjQuery(target) && target.fn !== undefined) {
 	    target.fn[targetFuncName] = newTargetFunc;
 	} else {
 	    target[targetFuncName] = newTargetFunc;
 	}
 }
 
-// Add add/remove behaviour functions
-Object.prototype.addBefore = function (targetFuncName, addedBehaviour) {
-    var self = this;
-    initIfABNotSet(self, targetFuncName)
+// Setup global functions
+window.ab = function (target) {
 
-    var targetFunc = findTargetFunc(self, targetFuncName);
-    if (targetFunc) {
-        if (!self.abMap.contains(targetFuncName)) {
-            setNewTargetFunc(self, targetFuncName, targetFunc);
+    // Add add/remove behaviour functions
+    target.addBefore = function (targetFuncName, addedBehaviour) {
+        var self = this;
+        initIfABNotSet(self, targetFuncName)
+
+        var targetFunc = findTargetFunc(self, targetFuncName);
+        if (targetFunc) {
+            if (!self.abMap.contains(targetFuncName)) {
+                setNewTargetFunc(self, targetFuncName, targetFunc);
+            }
+
+            return self.abMap.attachBefore(targetFuncName, addedBehaviour);
         }
 
-        return self.abMap.attachBefore(targetFuncName, addedBehaviour);
+        return false;
     }
 
-    return false;
+    target.removeBefore = function (targetFuncName, addedBehaviour) {
+        var self = this;
+        initIfABNotSet(self, targetFuncName)
+
+        var targetFunc = findTargetFunc(self, targetFuncName);
+        if (targetFunc) {
+            return self.abMap.detachBefore(targetFuncName, addedBehaviour);
+        }
+
+        return false;
+    };
 }
 
-Object.prototype.removeBefore = function (targetFuncName, addedBehaviour) {
-    var self = this;
-    initIfABNotSet(self, targetFuncName)
+window.isPromise = function (target) {
+    return target.then !== undefined;
+};
 
-    var targetFunc = findTargetFunc(self, targetFuncName);
-    if (targetFunc) {
-        return self.abMap.detachBefore(targetFuncName, addedBehaviour);
-    }
-
-    return false;
-}
-
-Object.prototype.isPromise = function () {
-    var self = this;
-    return self.then !== undefined;
-}
-
-Object.prototype.asPromise = function () {
-    var self = this;
-    return Q(self);
-}
+window.asPromise = function (target) {
+    return Q(target);
+};
 
 /*
  *  Proposes:
  *      - "after/following" behaviours?
+ *      - publish to npm?
+ *  
+ *  TODOs:
+ *      - test with ajax
+ *      - test with bootstrap modal popup
+ *      - add comments
  */
