@@ -25,16 +25,16 @@
  * SOFTWARE.
  * 
  */
-	
+    
 // Functions to create/retrive the list of listeners given a target function's name
 function initIfABNotSet(target) {
-		
+        
     var abMap = target.abMap;
-		
-	if (!abMap || !(abMap instanceof AddedBehaviours)) {
-		// Initialize added-behaviours map
-	    target.abMap = new AddedBehaviours();
-	}
+        
+    if (!abMap || !(abMap instanceof AddedBehaviours)) {
+        // Initialize added-behaviours map
+        target.abMap = new AddedBehaviours();
+    }
 }
 
 function initIfTargetNotSet(addedBehaviours, targetFuncName) {
@@ -51,10 +51,10 @@ function AddedBehaviours() {
 
     abInstance.behaviours = [];
         
-	abInstance.attachBefore = function (targetFuncName, addedBehaviour) {
-	    initIfTargetNotSet(abInstance, targetFuncName);
+    abInstance.attachBefore = function (targetFuncName, addedBehaviour) {
+        initIfTargetNotSet(abInstance, targetFuncName);
             
-		var listeners = abInstance.behaviours[targetFuncName];
+        var listeners = abInstance.behaviours[targetFuncName];
         var precedingListeners = listeners.preceding;
         if (!precedingListeners.includes(addedBehaviour)) {
             precedingListeners.push(addedBehaviour);
@@ -64,10 +64,10 @@ function AddedBehaviours() {
         return false;
     }
         
-	abInstance.detachBefore = function (targetFuncName, addedBehaviour) {
-	    initIfTargetNotSet(abInstance, targetFuncName);
+    abInstance.detachBefore = function (targetFuncName, addedBehaviour) {
+        initIfTargetNotSet(abInstance, targetFuncName);
             
-		var listeners = abInstance.behaviours[targetFuncName];
+        var listeners = abInstance.behaviours[targetFuncName];
         var precedingListeners = listeners.preceding;
         if (precedingListeners.includes(addedBehaviour)) {
             var index = precedingListeners.indexOf(addedBehaviour);
@@ -78,15 +78,15 @@ function AddedBehaviours() {
         }
 
         return false;
-	}
+    }
 
-	abInstance.contains = function (targetFuncName) {
-	    return abInstance.behaviours[targetFuncName] !== undefined;
-	}
+    abInstance.contains = function (targetFuncName) {
+        return abInstance.behaviours[targetFuncName] !== undefined;
+    }
         
-	return abInstance;
+    return abInstance;
 }
-	
+    
 function InvocationListeners() {
     var instance = this;
     instance.preceding = [];
@@ -117,34 +117,34 @@ function setNewTargetFunc(target, targetFuncName, targetFunc) {
                 actualTarget = elem;
         }
 
-	    var args = arguments;
-	    var precedingFuncs = target.abMap.behaviours[targetFuncName].preceding;
-	    if (precedingFuncs && precedingFuncs.length > 0) {
+        var args = arguments;
+        var precedingFuncs = target.abMap.behaviours[targetFuncName].preceding;
+        if (precedingFuncs && precedingFuncs.length > 0) {
 
-	        var result;
-	        var async = Q.defer();
+            var result;
+            var async = Q.defer();
 
-	        var promises = [];
-	        precedingFuncs.forEach(function (func) { promises.push(Q(func())); });
+            var promises = [];
+            precedingFuncs.forEach(function (func) { promises.push(Q(func())); });
 
-	        Q.allSettled(promises).then(function () {
-	            result = targetFunc.apply($(actualTarget), args);
-	            return Q(result);
-	        }).then(function () {
-	            async.resolve(result);
-	        });
+            Q.allSettled(promises).then(function () {
+                result = targetFunc.apply($(actualTarget), args);
+                return Q(result);
+            }).then(function () {
+                async.resolve(result);
+            });
 
-	        return async.promise;
-	    } else {
-	        return asPromise(targetFunc.apply($(actualTarget), args));
-	    }
-	};
+            return async.promise;
+        } else {
+            return asPromise(targetFunc.apply($(actualTarget), args));
+        }
+    };
 
-	if (isjQuery(target) && target.fn !== undefined) {
-	    target.fn[targetFuncName] = newTargetFunc;
-	} else {
-	    target[targetFuncName] = newTargetFunc;
-	}
+    if (isjQuery(target) && target.fn !== undefined) {
+        target.fn[targetFuncName] = newTargetFunc;
+    } else {
+        target[targetFuncName] = newTargetFunc;
+    }
 }
 
 // Setup global functions
