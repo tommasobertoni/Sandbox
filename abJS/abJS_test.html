@@ -6,6 +6,8 @@
     <style>
         .funny {
             font-family: Comic Sans, Comic Sans MS, cursive;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
         .col-md-4 {
@@ -76,12 +78,22 @@
         </div>
         <div class="row demoInfo">
             <div class="col-md-12">
-                <span class="funny">How does the popup gets open?</span>
+                <pre>
+// Using:
+// jQuery
+// bootstrap
+// q
+// abJS</pre>
+            </div>
+        </div>
+        <div class="row demoInfo">
+            <div class="col-md-12">
+                <div class="funny">How does the popup gets open?</div>
                 <pre>
 // The comments are probably irrelevant...
 var popup = $('#myModal');
 
-$(".container button:not(.dropdown-toggle)").click(function () { // For each button in the container, at the click
+$(".container button:not(.dropdown-toggle)").click(function () { // For each button in the container, when clicked
     popup.modal('show'); // Show the modal dialog
 });
 
@@ -93,7 +105,7 @@ $("#openMenu").click(function () {
         </div>
         <div class="row demoInfo">
             <div class="col-md-12">
-                <span class="funny">...so how does it changes behaviour using abJS?</span>
+                <div class="funny">...so how does it changes behaviour using abJS?</div>
                 <pre>
 ab(popup); // Initialize the popup for adding behaviour to functions (ab is a global function)
 function alertMessage() { alert("Added behaviour!"); }; // Define a function
@@ -101,8 +113,18 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
 //popup.removeBefore("modal", alertMessage); // To remove the alert function from the execution stack</pre>
             </div>
         </div>
-        <br />
-        <span class="funny">The VIP party is in the <i>console</i>...</span>
+        <div class="row demoInfo">
+            <div class="col-md-12">
+                <div class="funny">jQuery global integration</div>
+                <pre>
+// If you want to add the behaviour to every jQuery object, you can setup the $ variable instead of a specific instance
+ab($); // Initialize jQuery for adding behaviour to functions
+$.addBefore("modal", alertMessage);</pre>
+            </div>
+        </div>
+        <br /> <!-- sup? -->
+        <div class="funny">The VIP party is in the <i>console</i>...</div>
+        <br /> <!-- sup? -->
     </div>
 
     <!-- w3schools.com example -->
@@ -131,14 +153,14 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
     <script type="text/javascript">
         // Embedded javascript inside the page! Outrageous!
 
+        $(".demoInfo").toggle(); // Hide info
         $("#moreInfo").click(function () {
             $(".demoInfo").toggle();
         });
-        $(".demoInfo").toggle();
 
         var popup = $('#myModal');
         $(".container button:not(.dropdown-toggle)").click(function () {
-            $('#myModal').modal('show');
+            popup.modal('show');
         });
 
         $("#openMenu").click(function () {
@@ -147,7 +169,7 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
             });
         });
 
-        ab(popup); // Initialize the popup for adding behaviour to functions
+        // Yes, here I'm using the jQuery global integration
         ab($);
         function alertMessage() { alert("Added behaviour!"); };
         
@@ -166,12 +188,12 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
     </script>
     <script type="text/javascript">
 
-        //apiTest();
+        apiTest();
 
         function apiTest() {
             function checkResultPromiseState(result) {
                 if (result) {
-                    console.log("is result a promise? " + isPromise(result));
+                    console.log("isPromise(result)? " + isPromise(result));
                 }
             }
 
@@ -195,10 +217,11 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
             var result = tom.fullName();
             checkResultPromiseState(result);
             result = asPromise(result);
+            console.log("result = asPromise(result);");
             checkResultPromiseState(result);
 
             // Test alter behaviours
-            console.log("[method invocation (greet)]");
+            console.log("[method invocation]");
             tom.greet();
 
             console.log("[adding behaviour]");
@@ -207,7 +230,7 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
             };
             tom.addBefore("greet", printHeader);
 
-            console.log("[method invocation (greet)]");
+            console.log("[method invocation]");
             result = tom.greet();
 
             result.then(function () {
@@ -221,13 +244,13 @@ popup.addBefore("modal", alertMessage); // Add the alert function call before th
                     return async.promise;
                 });
 
-                console.log("[method invocation (greet)]");
+                console.log("[method invocation]");
                 return tom.greet();
             }).then(function () {
                 tom.removeBefore("greet", printHeader);
 
                 console.log("[removing behaviour]");
-                console.log("[method invocation (greet)]");
+                console.log("[method invocation]");
                 return tom.greet();
             });
         }

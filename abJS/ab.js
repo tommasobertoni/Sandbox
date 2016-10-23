@@ -195,6 +195,5 @@ window.asPromise = function (target) {
  *  
  *  TODOs:
  *      - test with ajax
- *      - test with bootstrap modal popup
  *      - add comments
  */
