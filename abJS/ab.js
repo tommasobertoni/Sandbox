@@ -26,9 +26,8 @@
  * 
  */
     
-// Functions to create/retrive the list of listeners given a target function's name
+// Utils
 function initIfABNotSet(target) {
-        
     var abMap = target.abMap;
         
     if (!abMap || !(abMap instanceof AddedBehaviours)) {
@@ -45,53 +44,6 @@ function initIfTargetNotSet(addedBehaviours, targetFuncName) {
         addedBehaviours.behaviours[targetFuncName] = listeners;
     }
 }
-    
-function AddedBehaviours() {
-    var abInstance = this;
-
-    abInstance.behaviours = [];
-        
-    abInstance.attachBefore = function (targetFuncName, addedBehaviour) {
-        initIfTargetNotSet(abInstance, targetFuncName);
-            
-        var listeners = abInstance.behaviours[targetFuncName];
-        var precedingListeners = listeners.preceding;
-        if (!precedingListeners.includes(addedBehaviour)) {
-            precedingListeners.push(addedBehaviour);
-            return true;
-        }
-
-        return false;
-    }
-        
-    abInstance.detachBefore = function (targetFuncName, addedBehaviour) {
-        initIfTargetNotSet(abInstance, targetFuncName);
-            
-        var listeners = abInstance.behaviours[targetFuncName];
-        var precedingListeners = listeners.preceding;
-        if (precedingListeners.includes(addedBehaviour)) {
-            var index = precedingListeners.indexOf(addedBehaviour);
-            if (index > -1) {
-                precedingListeners.splice(index, 1); // behaviour removed
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    abInstance.contains = function (targetFuncName) {
-        return abInstance.behaviours[targetFuncName] !== undefined;
-    }
-        
-    return abInstance;
-}
-    
-function InvocationListeners() {
-    var instance = this;
-    instance.preceding = [];
-    return instance;
-}
 
 function isjQuery(target) {
     // If jQuery is set and it's the target
@@ -99,7 +51,7 @@ function isjQuery(target) {
 }
 
 function findTargetFunc(target, targetFuncName) {
-    if (isjQuery(target) && target.fn !== undefined) {
+    if (isjQuery(target) && target.fn !== undefined && target.fn[targetFuncName] !== undefined) {
         return target.fn[targetFuncName];
     } else {
         return target[targetFuncName];
@@ -114,38 +66,154 @@ function setNewTargetFunc(target, targetFuncName, targetFunc) {
         if (isjQuery(target)) {
             var elem = this[0]; // Gets the current element
             if (elem)
-                actualTarget = elem;
+                actualTarget = $(elem);
         }
 
-        var args = arguments;
+        var args = arguments;        
+        var result;
+        var async = Q.defer();
+
+        var promises = [];
+
         var precedingFuncs = target.abMap.behaviours[targetFuncName].preceding;
-        if (precedingFuncs && precedingFuncs.length > 0) {
-
-            var result;
-            var async = Q.defer();
-
-            var promises = [];
+        if (precedingFuncs) {
             precedingFuncs.forEach(function (func) { promises.push(Q(func())); });
-
-            Q.allSettled(promises).then(function () {
-                result = targetFunc.apply($(actualTarget), args);
-                return Q(result);
-            }).then(function () {
-                async.resolve(result);
-            });
-
-            return async.promise;
-        } else {
-            return asPromise(targetFunc.apply($(actualTarget), args));
         }
+        
+        Q.allSettled(promises).then(function () {
+
+            result = targetFunc.apply(actualTarget, args);
+            return Q(result);
+
+        }).then(function () {
+
+            async.resolve(result);
+
+            promises = [];
+
+            var followingFuncs = target.abMap.behaviours[targetFuncName].following;
+            if (followingFuncs) {
+                followingFuncs.forEach(function (func) { promises.push(Q(func())); });
+            }
+
+            Q.allSettled(promises);
+        });
+
+        return async.promise;
     };
 
-    if (isjQuery(target) && target.fn !== undefined) {
+    if (isjQuery(target) && target.fn !== undefined && target.fn[targetFuncName] !== undefined) {
         target.fn[targetFuncName] = newTargetFunc;
     } else {
         target[targetFuncName] = newTargetFunc;
     }
 }
+
+function setupAddBehaviour(target, targetFuncName, delegateAddBehaviour) {
+    initIfABNotSet(target, targetFuncName)
+
+    var targetFunc = findTargetFunc(target, targetFuncName);
+    if (targetFunc) {
+        if (!target.abMap.contains(targetFuncName)) {
+            setNewTargetFunc(target, targetFuncName, targetFunc);
+        }
+
+        return delegateAddBehaviour();
+    }
+
+    return false;
+}
+
+function setupRemoveBehaviour(target, targetFuncName, delegateRemoveBehaviour) {
+    initIfABNotSet(target, targetFuncName)
+
+    var targetFunc = findTargetFunc(target, targetFuncName);
+    if (targetFunc) {
+        return delegateRemoveBehaviour();
+    }
+
+    return false;
+}
+// /Utils
+
+// Types
+function AddedBehaviours() {
+    var abInstance = this;
+
+    abInstance.behaviours = [];
+
+    abInstance.attachBefore = function (targetFuncName, addedBehaviour) {
+        initIfTargetNotSet(abInstance, targetFuncName);
+
+        var listeners = abInstance.behaviours[targetFuncName];
+        var precedingListeners = listeners.preceding;
+        if (!precedingListeners.indexOf(addedBehaviour) > -1) {
+            precedingListeners.push(addedBehaviour);
+            return true;
+        }
+
+        return false;
+    }
+
+    abInstance.detachBefore = function (targetFuncName, addedBehaviour) {
+        initIfTargetNotSet(abInstance, targetFuncName);
+
+        var listeners = abInstance.behaviours[targetFuncName];
+        var precedingListeners = listeners.preceding;
+        if (precedingListeners.indexOf(addedBehaviour) > -1) {
+            var index = precedingListeners.indexOf(addedBehaviour);
+            if (index > -1) {
+                precedingListeners.splice(index, 1); // behaviour removed
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    abInstance.attachAfter = function (targetFuncName, addedBehaviour) {
+        initIfTargetNotSet(abInstance, targetFuncName);
+
+        var listeners = abInstance.behaviours[targetFuncName];
+        var followingListeners = listeners.following;
+        if (!followingListeners.indexOf(addedBehaviour) > -1) {
+            followingListeners.push(addedBehaviour);
+            return true;
+        }
+
+        return false;
+    }
+
+    abInstance.detachAfter = function (targetFuncName, addedBehaviour) {
+        initIfTargetNotSet(abInstance, targetFuncName);
+
+        var listeners = abInstance.behaviours[targetFuncName];
+        var followingListeners = listeners.following;
+        if (followingListeners.indexOf(addedBehaviour) > -1) {
+            var index = followingListeners.indexOf(addedBehaviour);
+            if (index > -1) {
+                followingListeners.splice(index, 1); // behaviour removed
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    abInstance.contains = function (targetFuncName) {
+        return abInstance.behaviours[targetFuncName] !== undefined;
+    }
+
+    return abInstance;
+}
+
+function InvocationListeners() {
+    var instance = this;
+    instance.preceding = [];
+    instance.following = [];
+    return instance;
+}
+// /Types
 
 // Setup global functions
 window.ab = function (target) {
@@ -153,30 +221,30 @@ window.ab = function (target) {
     // Add add/remove behaviour functions
     target.addBefore = function (targetFuncName, addedBehaviour) {
         var self = this;
-        initIfABNotSet(self, targetFuncName)
-
-        var targetFunc = findTargetFunc(self, targetFuncName);
-        if (targetFunc) {
-            if (!self.abMap.contains(targetFuncName)) {
-                setNewTargetFunc(self, targetFuncName, targetFunc);
-            }
-
+        return setupAddBehaviour(self, targetFuncName, function () {
             return self.abMap.attachBefore(targetFuncName, addedBehaviour);
-        }
-
-        return false;
+        });
     }
 
     target.removeBefore = function (targetFuncName, addedBehaviour) {
         var self = this;
-        initIfABNotSet(self, targetFuncName)
-
-        var targetFunc = findTargetFunc(self, targetFuncName);
-        if (targetFunc) {
+        return setupRemoveBehaviour(self, targetFuncName, function () {
             return self.abMap.detachBefore(targetFuncName, addedBehaviour);
-        }
+        });
+    };
 
-        return false;
+    target.addAfter = function (targetFuncName, addedBehaviour) {
+        var self = this;
+        return setupAddBehaviour(self, targetFuncName, function () {
+            return self.abMap.attachAfter(targetFuncName, addedBehaviour);
+        });
+    }
+
+    target.removeAfter = function (targetFuncName, addedBehaviour) {
+        var self = this;
+        return setupRemoveBehaviour(self, targetFuncName, function () {
+            return self.abMap.detachAfter(targetFuncName, addedBehaviour);
+        });
     };
 }
 
@@ -187,13 +255,3 @@ window.isPromise = function (target) {
 window.asPromise = function (target) {
     return Q(target);
 };
-
-/*
- *  Proposes:
- *      - "after/following" behaviours?
- *      - publish to npm?
- *  
- *  TODOs:
- *      - test with ajax
- *      - add comments
- */

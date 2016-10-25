@@ -1,7 +1,8 @@
-#Ignore dependencies
+
+test
+node_modules
 
 bootstrap.css
-node_modules
-q.js
-jquery.js
 bootstrap.js
+jquery.js
+q.js
