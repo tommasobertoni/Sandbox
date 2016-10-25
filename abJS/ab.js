@@ -28,20 +28,18 @@
     
 // Utils
 function initIfABNotSet(target) {
+
     var abMap = target.abMap;
-        
-    if (!abMap || !(abMap instanceof AddedBehaviours)) {
-        // Initialize added-behaviours map
-        target.abMap = new AddedBehaviours();
-    }
+    if (!abMap || !(abMap instanceof AttachedBehaviours))
+        target.abMap = new AttachedBehaviours();
 }
 
-function initIfTargetNotSet(addedBehaviours, targetFuncName) {
-    var listeners = addedBehaviours.behaviours[targetFuncName];
+function initIfTargetNotSet(attachedBehaviours, targetFuncName) {
 
+    var listeners = attachedBehaviours.behaviours[targetFuncName];
     if (!listeners || !(listeners instanceof InvocationListeners)) {
         listeners = new InvocationListeners();
-        addedBehaviours.behaviours[targetFuncName] = listeners;
+        attachedBehaviours.behaviours[targetFuncName] = listeners;
     }
 }
 
@@ -52,6 +50,7 @@ function isjQuery(target) {
 
 function findTargetFunc(target, targetFuncName) {
     if (isjQuery(target) && target.fn !== undefined && target.fn[targetFuncName] !== undefined) {
+        // If is jQuery and the function is defined in the fn property
         return target.fn[targetFuncName];
     } else {
         return target[targetFuncName];
@@ -60,6 +59,7 @@ function findTargetFunc(target, targetFuncName) {
 
 function setNewTargetFunc(target, targetFuncName, targetFunc) {
 
+    // Define the function that will override the target function
     var newTargetFunc = function () {
 
         var actualTarget = target;
@@ -69,40 +69,47 @@ function setNewTargetFunc(target, targetFuncName, targetFunc) {
                 actualTarget = $(elem);
         }
 
-        var args = arguments;        
+        var args = arguments; // Arguments for the target function
         var result;
-        var async = Q.defer();
+        var async = Q.defer(); // Promise result
 
         var promises = [];
 
+        // Execute the "preceding" functions
         var precedingFuncs = target.abMap.behaviours[targetFuncName].preceding;
         if (precedingFuncs) {
-            precedingFuncs.forEach(function (func) { promises.push(Q(func())); });
+            precedingFuncs.forEach(function (func) { promises.push(asPromise(func())); });
         }
         
         Q.allSettled(promises).then(function () {
 
+            // Execute the target function
             result = targetFunc.apply(actualTarget, args);
-            return Q(result);
+            return asPromise(result);
 
         }).then(function () {
 
+            // Resolve the promise result
             async.resolve(result);
 
             promises = [];
 
+            // Execute the "following" functions
             var followingFuncs = target.abMap.behaviours[targetFuncName].following;
             if (followingFuncs) {
-                followingFuncs.forEach(function (func) { promises.push(Q(func())); });
+                followingFuncs.forEach(function (func) { promises.push(asPromise(func())); });
             }
 
-            Q.allSettled(promises);
+            return Q.allSettled(promises);
         });
 
         return async.promise;
     };
 
+    // Replace the target function
+
     if (isjQuery(target) && target.fn !== undefined && target.fn[targetFuncName] !== undefined) {
+        // If is jQuery and the function is defined in the fn property
         target.fn[targetFuncName] = newTargetFunc;
     } else {
         target[targetFuncName] = newTargetFunc;
@@ -110,13 +117,12 @@ function setNewTargetFunc(target, targetFuncName, targetFunc) {
 }
 
 function setupAddBehaviour(target, targetFuncName, delegateAddBehaviour) {
-    initIfABNotSet(target, targetFuncName)
 
+    initIfABNotSet(target, targetFuncName)
     var targetFunc = findTargetFunc(target, targetFuncName);
     if (targetFunc) {
-        if (!target.abMap.contains(targetFuncName)) {
+        if (!target.abMap.contains(targetFuncName))
             setNewTargetFunc(target, targetFuncName, targetFunc);
-        }
 
         return delegateAddBehaviour();
     }
@@ -125,45 +131,44 @@ function setupAddBehaviour(target, targetFuncName, delegateAddBehaviour) {
 }
 
 function setupRemoveBehaviour(target, targetFuncName, delegateRemoveBehaviour) {
-    initIfABNotSet(target, targetFuncName)
 
+    initIfABNotSet(target, targetFuncName)
     var targetFunc = findTargetFunc(target, targetFuncName);
-    if (targetFunc) {
+    if (targetFunc)
         return delegateRemoveBehaviour();
-    }
 
     return false;
 }
 // /Utils
 
 // Types
-function AddedBehaviours() {
+function AttachedBehaviours() {
     var abInstance = this;
 
-    abInstance.behaviours = [];
+    abInstance.behaviours = []; // FuncName: InvocationListeners map
 
-    abInstance.attachBefore = function (targetFuncName, addedBehaviour) {
+    abInstance.attachBefore = function (targetFuncName, attachedBehaviour) {
+
         initIfTargetNotSet(abInstance, targetFuncName);
-
         var listeners = abInstance.behaviours[targetFuncName];
         var precedingListeners = listeners.preceding;
-        if (!precedingListeners.indexOf(addedBehaviour) > -1) {
-            precedingListeners.push(addedBehaviour);
+        if (precedingListeners.indexOf(attachedBehaviour) === -1) { // Add the behaviour only once
+            precedingListeners.push(attachedBehaviour);
             return true;
         }
 
         return false;
     }
 
-    abInstance.detachBefore = function (targetFuncName, addedBehaviour) {
-        initIfTargetNotSet(abInstance, targetFuncName);
+    abInstance.detachBefore = function (targetFuncName, attachedBehaviour) {
 
+        initIfTargetNotSet(abInstance, targetFuncName);
         var listeners = abInstance.behaviours[targetFuncName];
         var precedingListeners = listeners.preceding;
-        if (precedingListeners.indexOf(addedBehaviour) > -1) {
-            var index = precedingListeners.indexOf(addedBehaviour);
+        if (precedingListeners.indexOf(attachedBehaviour) > -1) {
+            var index = precedingListeners.indexOf(attachedBehaviour);
             if (index > -1) {
-                precedingListeners.splice(index, 1); // behaviour removed
+                precedingListeners.splice(index, 1);
                 return true;
             }
         }
@@ -171,28 +176,28 @@ function AddedBehaviours() {
         return false;
     }
 
-    abInstance.attachAfter = function (targetFuncName, addedBehaviour) {
-        initIfTargetNotSet(abInstance, targetFuncName);
+    abInstance.attachAfter = function (targetFuncName, attachedBehaviour) {
 
+        initIfTargetNotSet(abInstance, targetFuncName);
         var listeners = abInstance.behaviours[targetFuncName];
         var followingListeners = listeners.following;
-        if (!followingListeners.indexOf(addedBehaviour) > -1) {
-            followingListeners.push(addedBehaviour);
+        if (followingListeners.indexOf(attachedBehaviour) === -1) { // Add the behaviour only once
+            followingListeners.push(attachedBehaviour);
             return true;
         }
 
         return false;
     }
 
-    abInstance.detachAfter = function (targetFuncName, addedBehaviour) {
-        initIfTargetNotSet(abInstance, targetFuncName);
+    abInstance.detachAfter = function (targetFuncName, attachedBehaviour) {
 
+        initIfTargetNotSet(abInstance, targetFuncName);
         var listeners = abInstance.behaviours[targetFuncName];
         var followingListeners = listeners.following;
-        if (followingListeners.indexOf(addedBehaviour) > -1) {
-            var index = followingListeners.indexOf(addedBehaviour);
+        if (followingListeners.indexOf(attachedBehaviour) > -1) {
+            var index = followingListeners.indexOf(attachedBehaviour);
             if (index > -1) {
-                followingListeners.splice(index, 1); // behaviour removed
+                followingListeners.splice(index, 1);
                 return true;
             }
         }
@@ -200,6 +205,7 @@ function AddedBehaviours() {
         return false;
     }
 
+    // Checks if the target function was already redefined on this target
     abInstance.contains = function (targetFuncName) {
         return abInstance.behaviours[targetFuncName] !== undefined;
     }
@@ -209,41 +215,45 @@ function AddedBehaviours() {
 
 function InvocationListeners() {
     var instance = this;
+
+    // Lists of attached behaviours
     instance.preceding = [];
     instance.following = [];
+
     return instance;
 }
 // /Types
 
-// Setup global functions
+// Global functions
+
+// Initialize the target (add functionalities)
 window.ab = function (target) {
 
-    // Add add/remove behaviour functions
-    target.addBefore = function (targetFuncName, addedBehaviour) {
+    target.addBefore = function (targetFuncName, attachedBehaviour) {
         var self = this;
         return setupAddBehaviour(self, targetFuncName, function () {
-            return self.abMap.attachBefore(targetFuncName, addedBehaviour);
+            return self.abMap.attachBefore(targetFuncName, attachedBehaviour);
         });
     }
 
-    target.removeBefore = function (targetFuncName, addedBehaviour) {
+    target.removeBefore = function (targetFuncName, attachedBehaviour) {
         var self = this;
         return setupRemoveBehaviour(self, targetFuncName, function () {
-            return self.abMap.detachBefore(targetFuncName, addedBehaviour);
+            return self.abMap.detachBefore(targetFuncName, attachedBehaviour);
         });
     };
 
-    target.addAfter = function (targetFuncName, addedBehaviour) {
+    target.addAfter = function (targetFuncName, attachedBehaviour) {
         var self = this;
         return setupAddBehaviour(self, targetFuncName, function () {
-            return self.abMap.attachAfter(targetFuncName, addedBehaviour);
+            return self.abMap.attachAfter(targetFuncName, attachedBehaviour);
         });
     }
 
-    target.removeAfter = function (targetFuncName, addedBehaviour) {
+    target.removeAfter = function (targetFuncName, attachedBehaviour) {
         var self = this;
         return setupRemoveBehaviour(self, targetFuncName, function () {
-            return self.abMap.detachAfter(targetFuncName, addedBehaviour);
+            return self.abMap.detachAfter(targetFuncName, attachedBehaviour);
         });
     };
 }
@@ -255,3 +265,4 @@ window.isPromise = function (target) {
 window.asPromise = function (target) {
     return Q(target);
 };
+// /Global functions
