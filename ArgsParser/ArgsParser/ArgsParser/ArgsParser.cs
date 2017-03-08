@@ -8,8 +8,8 @@ using static Utils.ArgsParser;
 namespace Utils
 {
     /// <summary>
-    /// This class provides a set of features that can be used to
-    /// easly parse the argument given to a console application.
+    /// This class provides a set of basic features that can be used to
+    /// easily parse the argument given to a console application.
     /// </summary>
     public class ArgsParser : IEnumerable<Parameter>
     {
