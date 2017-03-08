@@ -1,7 +1,6 @@
 #abJS
 ######*(Attached Behaviour JS)*
 
-##Absract
 A mini javascript library that enables to "extend" existing functions by executing in parallel a series of "attached" functions 
 (hence Attached Behaviour) before the execution of the target function.
 
