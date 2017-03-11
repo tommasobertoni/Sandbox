@@ -1,5 +1,5 @@
 This repo is meant to be a place where I can experiment with technologies and publish small utilities.
-Not everything here is production ready, and many may be left as they are. So if you want to use the code, be aware of it's current state
+Not everything here is production ready and many may be left as they are, without further development. So if you want to use the code, be aware of it's current state
 (many are just a **P**roof **O**f **C**oncept).
 
 Projects:
