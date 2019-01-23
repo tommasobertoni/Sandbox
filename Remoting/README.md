@@ -18,7 +18,7 @@ You can configure the host, security and other info by setting values in the par
 
 The `Remote` class is used by the client to configure the connection to the server, the `Remotable` class is used by the .NET Remoting host.
 
-The client app uses two different types of remote services (`RemoteService` and `AnotherRemoteService`)
+The client app uses two different types of remote services (`RemoteService` and `AnotherRemoteService`).
 <br><br>
 #### Tech
 C#7+, VS2017, .NET 4.7.2
