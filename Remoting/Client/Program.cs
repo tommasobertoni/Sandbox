@@ -15,25 +15,35 @@ namespace RemotingApp
         static async Task TestRemoting()
         {
 #if REMOTE
-            Remote.Enable(security: new Remote.SecurityConfig() /* Initialize with a remote user's credentials */);
+            Remote.Enable(/*security: new Remote.SecurityConfig() */);
             IService service = new RemoteService();
-            IService anotherService = new AnotherRemoteService();
+            IService complexService = new RemoteComplexService();
 #else
             IService service = new ConcreteService();
 #endif
 
             Console.WriteLine("CreateObject");
-            service.CreateObject();
+            var obj = service.CreateObject();
+            Console.WriteLine("Result: " + obj);
 #if REMOTE
-            anotherService.CreateObject();
+            var complexObj = complexService.CreateObject();
+            Console.WriteLine("ComplexResult: " + complexObj);
+#endif
+
+            Console.WriteLine("DoAsync");
+            await service.DoAsync();
+#if REMOTE
+            var complexTask = complexService.DoAsync();
+            await complexTask;
 #endif
 
             Console.WriteLine("GetIntAsync");
             var result = await service.GetIntAsync();
             Console.WriteLine("Result: " + result);
 #if REMOTE
-            var anotherResult = await anotherService.GetIntAsync();
-            Console.WriteLine("AnotherResult: " + result);
+            var complexTaskWithResult = complexService.GetIntAsync();
+            var complexResult = await complexTaskWithResult;
+            Console.WriteLine("ComplexResult: " + complexResult);
 #endif
 
             Console.ReadLine();

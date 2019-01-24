@@ -13,7 +13,7 @@ namespace ServerApp
         static void TestRemoting()
         {
 #if REMOTE
-            Remotable.Enable(useSecureChannel: true);
+            Remotable.Enable(/*useSecureChannel: true*/);
 #else
             Console.WriteLine("No remote");
 #endif

@@ -16,7 +16,13 @@ namespace Lib
         public object CreateObject()
         {
             Print($"{_id} Concrete: CreateObject");
-            return new object();
+            return "test";
+        }
+
+        public async Task DoAsync()
+        {
+            Print($"{_id} Concrete: DoAsync");
+            await Task.Yield();
         }
 
         public async Task<int> GetIntAsync()

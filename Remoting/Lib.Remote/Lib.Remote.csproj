@@ -54,8 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnotherService\AnotherRemotableService.cs" />
-    <Compile Include="AnotherService\AnotherRemoteService.cs" />
+    <Compile Include="ComplexService\RemoteComplexService.cs" />
+    <Compile Include="ComplexService\SerializableTask.cs" />
     <Compile Include="Defaults.cs" />
     <Compile Include="IRemotable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -4,8 +4,10 @@ namespace Lib
 {
     public interface IService
     {
-        Task<int> GetIntAsync();
-
         object CreateObject();
+
+        Task DoAsync();
+
+        Task<int> GetIntAsync();
     }
 }
