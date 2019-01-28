@@ -45,7 +45,7 @@ You can configure the host, security and other info by setting values in the par
 ![Screenshot](https://user-images.githubusercontent.com/8939890/51844472-a588c480-2315-11e9-8838-4180e2018d6a.png)
 
 1. The Client creates an instance of `RemoteProxyService`, `SelfProxyRemoteService` and `WCFProxyService`, all of which implement the `IService` interface. <br />
-Here you can see that the `RemoteProxyService` and `WCFProxyService` types are beign executed on the client app, but `SelfProxyRemoteService` is only invoked remotely.
+Here you can see that the `RemoteProxyService` and `WCFProxyService` types are being executed on the client app, but `SelfProxyRemoteService` is only invoked remotely.
 Each remote type wraps and uses an instance of `ConcreteService`, and that's why its constructor is invoked immediately after the remote service's. Note that WCF deferres the creation of
 the remote object to the first method invokation, therefore at this step no remote WCF object is created.
 
