@@ -9,5 +9,4 @@ parallel a series of "attached" functions
 - **_[ArgsParser](/ArgsParser)_** ( C# ): Single class utility that provides a set of basic features that can be used to easly parse the
 argument given to a console application
 
-- **_[Remoting](/Remoting)_** ( C#, *POC* ): Demo app showing the configuration and use of .NET Remoting, to solve a real
-problem of running a remote implementation of a interface.
+- **_[Remoting](/Remoting)_** ( C#, *POC* ): Demo app exploring different solutions for remotely execute methods on an instance of a class implementing a shared interface.
