@@ -10,30 +10,31 @@ namespace Lib
         public ConcreteService()
         {
             _id = this.GetHashCode().ToString();
-            Print($"{_id} ConcreteService created");
+            Print("created");
         }
 
         public object CreateObject()
         {
-            Print($"{_id} Concrete: CreateObject");
+            Print("CreateObject");
             return "test";
         }
 
         public async Task DoAsync()
         {
-            Print($"{_id} Concrete: DoAsync");
+            Print("DoAsync");
             await Task.Yield();
         }
 
         public async Task<int> GetIntAsync()
         {
-            Print($"{_id} Concrete: GetIntAsync");
+            Print("GetIntAsync");
             await Task.Yield();
             return 42;
         }
 
         private void Print(string message)
         {
+            message = $"{_id} {this.GetType().Name}: {message}";
             Console.WriteLine(message);
         }
     }

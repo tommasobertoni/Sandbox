@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib.RemoteWCF", "Lib.RemoteWCF\Lib.RemoteWCF.csproj", "{3A921235-5FC5-4816-978C-A884134ECF09}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,12 @@ Global
 		{21576278-8F81-43C1-B24F-D56E7F2AA635}.Release|Any CPU.Build.0 = Release|Any CPU
 		{21576278-8F81-43C1-B24F-D56E7F2AA635}.Remote|Any CPU.ActiveCfg = Remote|Any CPU
 		{21576278-8F81-43C1-B24F-D56E7F2AA635}.Remote|Any CPU.Build.0 = Remote|Any CPU
+		{3A921235-5FC5-4816-978C-A884134ECF09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A921235-5FC5-4816-978C-A884134ECF09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A921235-5FC5-4816-978C-A884134ECF09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A921235-5FC5-4816-978C-A884134ECF09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A921235-5FC5-4816-978C-A884134ECF09}.Remote|Any CPU.ActiveCfg = Release|Any CPU
+		{3A921235-5FC5-4816-978C-A884134ECF09}.Remote|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

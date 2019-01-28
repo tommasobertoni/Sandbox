@@ -8,7 +8,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 
 namespace Lib.Remote
 {
-    public sealed class Remote
+    public sealed class RemotingClient
     {
         public class SecurityConfig
         {
@@ -27,7 +27,7 @@ namespace Lib.Remote
         /// <param name="timeoutMillis">A connection timeout.</param>
         /// <param name="security">Security configuration: if an instance is passed to the method the connection will be secure.</param>
         /// <param name="channelName">The local TCP channel name.</param>
-        public static void Enable(
+        public static void Connect(
             string host = "localhost",
             int serverPort = Defaults.ConnectionPort,
             int? timeoutMillis = Defaults.TimeoutMillis,
@@ -36,10 +36,8 @@ namespace Lib.Remote
         {
             RegisterChannel(timeoutMillis, security, channelName);
 
-            var remotables = FindRemotables();
-            RegisterRemotables(remotables, host, serverPort);
-
-            Console.WriteLine("Remote enabled");
+            var remoteServiceTypes = FindRemoteServices();
+            RegisterRemoteServiceTypes(remoteServiceTypes, host, serverPort);
         }
 
         private static void RegisterChannel(int? timeoutMillis, SecurityConfig security, string channelName)
@@ -62,23 +60,23 @@ namespace Lib.Remote
             }, ensureSecurity: useSecureChannel);
         }
 
-        private static IEnumerable<TypeInfo> FindRemotables()
+        private static IEnumerable<TypeInfo> FindRemoteServices()
         {
-            var remotableType = typeof(IRemotable);
+            var remoteServiceType = typeof(IRemoteService);
 
-            var remotables = remotableType.Assembly.DefinedTypes
-                .Where(t => t != remotableType && remotableType.IsAssignableFrom(t));
+            var remoteServiceTypes = remoteServiceType.Assembly.DefinedTypes
+                .Where(t => t != remoteServiceType && remoteServiceType.IsAssignableFrom(t));
 
-            return remotables;
+            return remoteServiceTypes;
         }
 
-        private static void RegisterRemotables(IEnumerable<TypeInfo> remotables, string host, int serverPort)
+        private static void RegisterRemoteServiceTypes(IEnumerable<TypeInfo> remoteServiceTypes, string host, int serverPort)
         {
             var serverUrl = $"tcp://{host}:{serverPort}";
 
-            foreach (var remotable in remotables)
+            foreach (var remoteServiceType in remoteServiceTypes)
             {
-                ActivatedClientTypeEntry myActivatedClientTypeEntry = new ActivatedClientTypeEntry(remotable, serverUrl);
+                ActivatedClientTypeEntry myActivatedClientTypeEntry = new ActivatedClientTypeEntry(remoteServiceType, serverUrl);
                 RemotingConfiguration.RegisterActivatedClientType(myActivatedClientTypeEntry);
             }
         }

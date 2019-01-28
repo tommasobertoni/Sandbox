@@ -7,7 +7,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 
 namespace Lib.Remote
 {
-    public sealed class Remotable
+    public sealed class RemotingServer
     {
         /// <summary>
         /// Enables this host to register remote types that will be invoked using .NET Remoting (over TCP).
@@ -22,10 +22,8 @@ namespace Lib.Remote
         {
             RegisterChannel(connectionPort, useSecureChannel, channelName);
 
-            var remotables = FindRemotables();
-            RegisterRemotables(remotables);
-
-            System.Console.WriteLine("Remotable enabled");
+            var remoteServiceTypes = FindRemoteServices();
+            RegisterRemoteServiceTypes(remoteServiceTypes);
         }
 
         private static void RegisterChannel(int connectionPort, bool useSecureChannel, string channelName)
@@ -42,21 +40,21 @@ namespace Lib.Remote
             }, ensureSecurity: useSecureChannel);
         }
 
-        private static IEnumerable<TypeInfo> FindRemotables()
+        private static IEnumerable<TypeInfo> FindRemoteServices()
         {
-            var remotableType = typeof(IRemotable);
+            var remoteServiceType = typeof(IRemoteService);
             
-            var remotables = remotableType.Assembly.DefinedTypes
-                .Where(t => t != remotableType && remotableType.IsAssignableFrom(t));
+            var remoteServiceTypes = remoteServiceType.Assembly.DefinedTypes
+                .Where(t => t != remoteServiceType && remoteServiceType.IsAssignableFrom(t));
 
-            return remotables;
+            return remoteServiceTypes;
         }
 
-        private static void RegisterRemotables(IEnumerable<TypeInfo> remotables)
+        private static void RegisterRemoteServiceTypes(IEnumerable<TypeInfo> remoteServiceTypes)
         {
-            foreach (var remotable in remotables)
+            foreach (var remoteServiceType in remoteServiceTypes)
             {
-                RemotingConfiguration.RegisterActivatedServiceType(remotable);
+                RemotingConfiguration.RegisterActivatedServiceType(remoteServiceType);
             }
         }
     }

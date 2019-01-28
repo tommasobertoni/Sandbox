@@ -1,5 +1,6 @@
 ﻿using Lib;
 using Lib.Remote;
+using Lib.RemoteWCF;
 using System;
 using System.Threading.Tasks;
 
@@ -7,6 +8,10 @@ namespace RemotingApp
 {
     public class Client
     {
+#if REMOTE
+        private static RemoteConsoleService _remoteConsole;
+#endif
+
         public static async Task Main(string[] args)
         {
             await TestRemoting();
@@ -14,39 +19,60 @@ namespace RemotingApp
 
         static async Task TestRemoting()
         {
+            Console.WriteLine("Client.exe\n");
+
 #if REMOTE
-            Remote.Enable(/*security: new Remote.SecurityConfig() */);
-            IService service = new RemoteService();
-            IService complexService = new RemoteComplexService();
+            RemotingClient.Connect(/*security: new Remote.SecurityConfig() */);
+            WCFClient.Connect();
+
+            IService service = new RemoteProxyService();
+            IService selfProxyService = new SelfProxyRemoteService();
+            IService wcfService = new WCFProxyService();
+
+            _remoteConsole = new RemoteConsoleService();
 #else
             IService service = new ConcreteService();
 #endif
-
-            Console.WriteLine("CreateObject");
+            
+            WriteLine("\n---- CreateObject ----------------");
             var obj = service.CreateObject();
             Console.WriteLine("Result: " + obj);
 #if REMOTE
-            var complexObj = complexService.CreateObject();
-            Console.WriteLine("ComplexResult: " + complexObj);
+            var selfProxyObj = selfProxyService.CreateObject();
+            Console.WriteLine("SelfProxyResult: " + selfProxyObj);
+            var wcfObject = wcfService.CreateObject();
+            Console.WriteLine("WcfResult: " + wcfObject);
 #endif
 
-            Console.WriteLine("DoAsync");
+            WriteLine("\n---- DoAsync ----------------");
             await service.DoAsync();
 #if REMOTE
-            var complexTask = complexService.DoAsync();
-            await complexTask;
+            var selfProxyTask = selfProxyService.DoAsync();
+            await selfProxyTask;
+            var wcfTask = wcfService.DoAsync();
+            await wcfTask;
 #endif
-
-            Console.WriteLine("GetIntAsync");
+            
+            WriteLine("\n---- GetIntAsync ----------------");
             var result = await service.GetIntAsync();
             Console.WriteLine("Result: " + result);
 #if REMOTE
-            var complexTaskWithResult = complexService.GetIntAsync();
-            var complexResult = await complexTaskWithResult;
-            Console.WriteLine("ComplexResult: " + complexResult);
+            var selfProxyTaskWithResult = selfProxyService.GetIntAsync();
+            var selfProxyResult = await selfProxyTaskWithResult;
+            Console.WriteLine("SelfProxyResult: " + selfProxyResult);
+            var wcfTaskWithResult = wcfService.GetIntAsync();
+            var wcfResult = await wcfTaskWithResult;
+            Console.WriteLine("WcfResult: " + wcfResult);
 #endif
-
             Console.ReadLine();
+        }
+
+        private static void WriteLine(string message = null)
+        {
+#if REMOTE
+            _remoteConsole.WriteLine(message);
+#endif
+            Console.WriteLine(message);
         }
     }
 }

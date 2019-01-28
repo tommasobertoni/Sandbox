@@ -1,5 +1,8 @@
 ﻿using Lib.Remote;
+using Lib.RemoteWCF;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ServerApp
 {
@@ -12,12 +15,18 @@ namespace ServerApp
 
         static void TestRemoting()
         {
+            Console.WriteLine("Server.exe\n");
+
 #if REMOTE
-            Remotable.Enable(/*useSecureChannel: true*/);
+            RemotingServer.Enable(/*useSecureChannel: true*/);
+            WCFServer.Enable();
 #else
             Console.WriteLine("No remote");
 #endif
             Console.ReadLine();
+#if REMOTE
+            WCFServer.Close();
+#endif
         }
     }
 }

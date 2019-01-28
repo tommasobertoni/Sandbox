@@ -1,47 +1,48 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace Lib.Remote
 {
     /// <summary>
-    /// This class implements the shared interface and acts as proxy towards the remotable, "remoting enabled and registered" type.
-    /// This class is used by the Client.
+    /// This class is the .NET Remoting wrapper over the concrete implementation of the shared interface.
+    /// This type cannot implement directly the interface, because some methods return types that are not serializable (i.e. Task<T>).
+    /// Instances of this type will run on the Server, while on the Client there will be some proxy instances created by .NET Remoting.
     /// </summary>
-    public class RemoteService : IService
+    internal class RemoteService : MarshalByRefObject, IRemoteService
     {
-        private readonly RemotableService _service;
+        private IService _service;
         private readonly string _id;
 
         public RemoteService()
         {
             _id = this.GetHashCode().ToString();
-            Print($"{_id} RemoteService created");
-            _service = new RemotableService();
+            Print("created");
+            _service = new ConcreteService();
         }
 
         public object CreateObject()
         {
-            Print($"{_id} Remote: CreateObject");
+            Print("CreateObject");
             return _service.CreateObject();
         }
 
-        public Task DoAsync()
+        public void Do()
         {
-            Print($"{_id} Remote: DoAsync");
-            _service.Do();
-            return Task.CompletedTask;
+            Print("Do");
+            _service.DoAsync().Wait();
         }
 
-        public Task<int> GetIntAsync()
+        public int GetInt()
         {
-            Print($"{_id} Remote: GetIntAsync");
-            return Task.FromResult(_service.GetInt());
+            Print("GetInt");
+            var result = _service.GetIntAsync().GetAwaiter().GetResult();
+            return result;
         }
 
         private void Print(string message)
         {
+            message = $"{_id} {this.GetType().Name}: {message}";
             var oldColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(message);
             Console.ForegroundColor = oldColor;
         }

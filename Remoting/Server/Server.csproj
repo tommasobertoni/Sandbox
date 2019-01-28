@@ -65,6 +65,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Lib.RemoteWCF\Lib.RemoteWCF.csproj">
+      <Project>{3a921235-5fc5-4816-978c-a884134ecf09}</Project>
+      <Name>Lib.RemoteWCF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Lib.Remote\Lib.Remote.csproj">
       <Project>{21576278-8f81-43c1-b24f-d56e7f2aa635}</Project>
       <Name>Lib.Remote</Name>

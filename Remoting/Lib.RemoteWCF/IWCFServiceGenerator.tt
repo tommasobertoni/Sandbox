@@ -1,0 +1,49 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ assembly name="$(SolutionDir)Lib\bin\Debug\Lib.dll" #>
+<#@ import namespace="Lib" #>
+using Lib;
+using System.ServiceModel;
+
+namespace Lib.RemoteWCF
+{
+	[ServiceContract]
+	public interface IWCFService
+	{
+<#
+	var targetInterfaceType = typeof(Lib.IService);
+
+	var extractedMethods = ExtractMethods(targetInterfaceType);
+	foreach (var m in extractedMethods)
+	{
+#>
+		[OperationContract]
+		<#= m #>;
+<#
+	}
+#>
+	}
+}
+<#+
+	public IEnumerable<string> ExtractMethods(System.Type type)
+	{
+		return type.GetMethods().Select(method =>
+		{
+			var ret = FriendlyTypeName(method.ReturnType);
+			var name = method.Name;
+			var parameters = method.GetParameters().Select(p => $"{FriendlyTypeName(p.ParameterType)} {p.Name}");
+			return $"{ret} {name}({string.Join(", ", parameters)})";
+		});
+	}
+
+    public string FriendlyTypeName(Type t)
+    {
+        return t.IsGenericType
+            ? $"{t.FullName.Split('`')[0]}<{string.Join(", ", t.GetGenericArguments().Select(x => x.FullName))}>"
+            : t.FullName;
+    }
+#>
