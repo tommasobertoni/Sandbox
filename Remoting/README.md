@@ -11,7 +11,8 @@ The solution includes these implementations:
 1. **using .NET Remoting with a proxy class:** the remote service class extends `MarshalByRefObject`
 in order to be invokable by .NET Remoting and provides appropriate methods to invoke the
 `ConcreteService`'s methods. <br />
-The proxy implements the shared interface and is used by the client app. <br />
+The proxy implements the shared interface and is used by the client app.
+<br /><br />
 NOTE: *all return types must be binary serializable!*
 
 2. **using .NET Remoting with a self proxy class:** this somewhat hacky implementation aims to use a
@@ -30,7 +31,8 @@ without changing the shared contract, and seamlessly enabling DI capabilities. <
 Another required step for this implementation is to create a copy of the sared interface and decorate it with the
 attributes required by WCF. The `IWCFService` interface is created using a T4 template that read the target interface
 and creates a copy. The `IWCFService` will be implemented by the `WCFService` type (which is the type registered and
-remotely invoked by WCF), while the `IService` shared interface will be implemented by the `WCFProxyService` used by the client app. <br />
+remotely invoked by WCF), while the `IService` shared interface will be implemented by the `WCFProxyService` used by the client app.
+<br /><br />
 NOTE: *`WCFService` can't implement both `IService` and `IWCFService` because, on the client app, WCF would create an `IService` proxy
 and would throw exception because the methods declared on this interface don't have the required attributes.*
 <br /><br />
