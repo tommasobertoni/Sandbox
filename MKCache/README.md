@@ -69,10 +69,9 @@ Assert(countryFoundById != null);
 var countryFoundByISO = cache.GetOrCreate("US", () => _countriesService.Resolve("US"), countryCacheExpiration);
 Assert(countryFoundByISO != null);
 ```
-<br />
 
 Check out the [samples](./samples/) for more use cases.
-<br /><br />
+<br />
 
 ## Reusing running asynchronous fetchers
 
@@ -102,7 +101,6 @@ var allCountryNames = await Task.WhenAll(people.Select(async p =>
 
 var uniqueCountryNames = allCountryNames.Distinct();
 ```
-<br />
 
 In order to mitigate this, the `MKCache` reuses the tasks created by the delegates,
 storing them into a `ConcurrentDictionary`.
@@ -111,4 +109,4 @@ This won't *ensure* that two or more concurrent requests with the same key will 
 because there's no `lock` in play, but in general it will greatly improve the use of resources
 and performances, proportionally to the amount of "twin" requests executed concurrently.
 
-This behavior can be disabled by setting `cache.ReuseRunningAsyncFetchers = false;` (default is `true`).
+This behavior can be disabled by setting `cache.ReuseRunningAsyncFetchers = false` (default is `true`).
