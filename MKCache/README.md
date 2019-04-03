@@ -102,11 +102,10 @@ var allCountryNames = await Task.WhenAll(people.Select(async p =>
 var uniqueCountryNames = allCountryNames.Distinct();
 ```
 
-In order to mitigate this, the `MKCache` reuses the tasks created by the delegates,
-storing them into a `ConcurrentDictionary`.
+In order to mitigate this, the `MKCache` reuses the tasks created by the delegates, which are stored into a `ConcurrentDictionary`.
 <br />
 This won't *ensure* that two or more concurrent requests with the same key will never be executed,
-because there's no `lock` in play, but in general it will greatly improve the use of resources
+because **there's no lock** in play, but in general it will greatly improve the use of resources
 and performances, proportionally to the amount of "twin" requests executed concurrently.
 
 This behavior can be disabled by setting `cache.ReuseRunningAsyncFetchers = false` (default is `true`).
