@@ -10,3 +10,5 @@ parallel a series of "attached" functions
 argument given to a console application
 
 - **_[Remoting](/Remoting)_** ( C#, *POC* ): Demo app exploring different solutions for remotely execute methods on an instance of a class implementing a shared interface.
+
+- **_[MKCache](/MKCache)_** ( C# ): A cache type that allows to cache an element using more than one key.
